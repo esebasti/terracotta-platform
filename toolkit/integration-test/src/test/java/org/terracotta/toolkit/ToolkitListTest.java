@@ -52,6 +52,7 @@ public class ToolkitListTest implements ICommonTest {
     System.out.println("id:" + id);
     List list = null;
     if (id == 0) {
+      //list operations by client 0
       list = toolkit.createList("my-list", new ListConfig());
       Assert.assertNotNull(list);
       list.add("element1");
@@ -65,15 +66,18 @@ public class ToolkitListTest implements ICommonTest {
       Assert.assertEquals(list.size(), 0);
       list.add("element3");
     }
+    //sleep here as barrier.await() hangs when invoked again
     Thread.sleep(10000);
     if (id != 0) {
+      //Obtain list created by first client
+      //toolkit get doesn't work without preceding create call
       list = toolkit.createList("my-list", new ListConfig());
       Assert.assertNull(list);
       list = toolkit.getList("my-list");
       Assert.assertNotNull(list);
       Assert.assertEquals(list.get(0), "element3");
     }
-
+    //sleep here as barrier.await() hangs when invoked again
     Thread.sleep(10000);
     connection.close();
   }
