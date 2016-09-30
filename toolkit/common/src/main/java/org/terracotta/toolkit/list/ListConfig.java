@@ -15,9 +15,14 @@
  */
 package org.terracotta.toolkit.list;
 
+import org.terracotta.toolkit.ToolkitObjectConfig;
+
 /**
  *
  */
-public class ListConfig {
-  
+public class ListConfig extends ToolkitObjectConfig {
+  @Override
+  public byte[] toRaw() {
+    return new byte[0];
+  }
 }

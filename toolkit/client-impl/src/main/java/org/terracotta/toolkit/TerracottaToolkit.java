@@ -31,6 +31,7 @@ import org.terracotta.exception.EntityException;
 import org.terracotta.toolkit.barrier.Barrier;
 import org.terracotta.toolkit.barrier.BarrierConfig;
 import org.terracotta.toolkit.list.ListConfig;
+import org.terracotta.toolkit.list.ToolkitList;
 import org.terracotta.toolkit.map.MapConfig;
 import org.terracotta.toolkit.observer.ObserverConfig;
 import org.terracotta.toolkit.queue.QueueConfig;
@@ -79,11 +80,13 @@ public class TerracottaToolkit implements Toolkit, EndpointDelegate {
   private <T extends ToolkitObject,C> T createType(Class<T> type, String name, C config) {
     if (type == Barrier.class) {
       return type.cast(new TerracottaBarrier(this, endpoint, type.getName(), name, (BarrierConfig)config));
+    } else if (type == ToolkitList.class) {
+      return type.cast(new TerracottaList(this, endpoint, type.getName(), name, (ListConfig)config));
     }
     return null;
   }
   
-  private synchronized <T extends ToolkitObject,C> T acquire(Class<T> type, String name, C create) {
+  private synchronized <T extends ToolkitObject,C extends ToolkitObjectConfig> T acquire(Class<T> type, String name, C create) {
     cleanup();
     try {
       String tname = buildName(type.getName(), name);
@@ -98,7 +101,7 @@ public class TerracottaToolkit implements Toolkit, EndpointDelegate {
           delegate = placed.get();
         } else {
           ToolkitResponse resp = (create != null) ?                   
-                  endpoint.beginInvoke().message(new CreateToolkitObject(type.getName(), name, ((BarrierConfig)create).toRaw())).invoke().get()
+                  endpoint.beginInvoke().message(new CreateToolkitObject(type.getName(), name, create.toRaw())).invoke().get()
           :
                   endpoint.beginInvoke().message(new GetToolkitObject(type.getName(), name)).invoke().get();
           switch (resp.result()) {
@@ -123,7 +126,7 @@ public class TerracottaToolkit implements Toolkit, EndpointDelegate {
     return type.cast(acquire(type, name, null));
   }
   
-  private <T extends ToolkitObject, C> T createToolkitObject(Class<T> type, String name, C config) {
+  private <T extends ToolkitObject, C extends ToolkitObjectConfig> T createToolkitObject(Class<T> type, String name, C config) {
     return type.cast(acquire(type, name, config));
   }
 
@@ -159,12 +162,12 @@ public class TerracottaToolkit implements Toolkit, EndpointDelegate {
 
   @Override
   public List createList(String name, ListConfig config) throws ToolkitObjectExists {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return createToolkitObject(ToolkitList.class, name, config);
   }
 
   @Override
   public List getList(String name) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return getToolkitObject(ToolkitList.class, name);
   }
 
   @Override

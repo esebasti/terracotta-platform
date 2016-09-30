@@ -26,6 +26,7 @@ import org.terracotta.runnel.Struct;
 import org.terracotta.runnel.StructBuilder;
 import org.terracotta.toolkit.barrier.BarrierConfig;
 import org.terracotta.toolkit.barrier.BarrierServerHandler;
+import org.terracotta.toolkit.list.ListServerHandler;
 
 
 public class TerracottaToolkitServerEntity implements ActiveServerEntity<ToolkitMessage, ToolkitResponse> {
@@ -114,6 +115,8 @@ public class TerracottaToolkitServerEntity implements ActiveServerEntity<Toolkit
   private ServerHandler translate(String type, String name, ClientDescriptor descriptor, ToolkitMessage m) {
     if (m.type().equals("org.terracotta.toolkit.barrier.Barrier")) {
       return new BarrierServerHandler(type, name, new BarrierConfig(m.payload()), communicator, descriptor);
+    } else if (m.type().equals("org.terracotta.toolkit.list.ToolkitList")) {
+      return new ListServerHandler(type, name, descriptor);
     }
     return null;
   }
